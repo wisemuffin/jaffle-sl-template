@@ -79,7 +79,7 @@ semantic_models:
         expr: 1
         agg: sum
       - name: order_count_demo
-        expr: 1
+        expr: 2
         agg: sum
       - name: tax_paid
         description: The total tax paid on each order.
