@@ -15,6 +15,6 @@ jobs:
         with:
             python-version: "3.8"
       - name: Install SQLFluff
-        run: "pip install sqlfluff"
+        run: "pip install  sqlfluff-templater-dbt"
       - name: Lint models
         run: "sqlfluff lint models"
