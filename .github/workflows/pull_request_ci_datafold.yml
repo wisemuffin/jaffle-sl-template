@@ -1,0 +1,91 @@
+name: Pull Reuest Job DBT via CLI and Datafold
+
+# Run this job when a commit is pushed to any branch except main
+on:
+  pull_request:
+  push:
+    branches:
+      - '!main'
+      
+jobs:
+  dbt-build-pull-request-cli-datafold:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+      - name: Set up Snowflake profile
+        env:
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+        run: |
+          mkdir -p ~/.dbt/
+          echo "snowflake:" >> ~/.dbt/profiles.yml
+          echo " target: prod" >> ~/.dbt/profiles.yml
+          echo " outputs:" >> ~/.dbt/profiles.yml
+          echo "   prod:" >> ~/.dbt/profiles.yml
+          echo "     type: snowflake" >> ~/.dbt/profiles.yml
+          echo "     account: $SNOWFLAKE_ACCOUNT" >> ~/.dbt/profiles.yml
+          echo "     user: $SNOWFLAKE_USER" >> ~/.dbt/profiles.yml
+          echo "     password: $SNOWFLAKE_PASSWORD" >> ~/.dbt/profiles.yml
+          echo "     role: $SNOWFLAKE_ROLE" >> ~/.dbt/profiles.yml
+          echo "     database: $SNOWFLAKE_DATABASE" >> ~/.dbt/profiles.yml
+          echo "     warehouse: $SNOWFLAKE_WAREHOUSE" >> ~/.dbt/profiles.yml
+          echo "     schema: pr_$(date +%s)" >> ~/.dbt/profiles.yml
+
+
+    # - name: Lint SQL
+      #   run: |
+      #     diff-quality --violations sqlfluff --compare-branch origin/main
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          # role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
+          role-duration-seconds: 1200
+          role-session-name: MySessionName
+  
+      - name: Get the last manifest.json from s3
+        run: |
+          aws s3 cp s3://jaffle-sl-template/prod/manifest/manifest.json ./target/last_manifest/manifest.json 
+  
+      - name: Check if manifest exists
+        run : |
+          pwd
+          cd ./target/last_manifest
+          ls
+          cd ../..
+
+      - name: Install dbt Dependencies
+        run: dbt deps
+      - name: Deploy
+        run: |
+          export DBT_PROFILE_SCHEMA=pr_$(date +%s)
+          dbt seed --select state:modified --state ./target/last_manifest --full-refresh
+          dbt run --models state:modified+ --defer --state ./target/last_manifest
+          dbt test --models state:modified+ --defer --state ./target/last_manifest
+
+
+      - name: Install Datafold SDK
+        run: pip install -q datafold-sdk
+
+      - name: Upload PR manifest.json to Datafold
+        run: |
+          datafold dbt upload --ci-config-id 305 --run-type pull_request --commit-sha ${GIT_SHA}
+        # The <datafold_ci_config_id> value can be obtained from the Datafold application: Settings > Integrations > dbt Core/Cloud > the ID column
+        env:
+          DATAFOLD_API_KEY: ${{ secrets.DATAFOLD_API_KEY }}
+          GIT_SHA: "${{ github.event.pull_request.head.sha }}"
