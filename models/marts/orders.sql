@@ -20,8 +20,7 @@ order_items_summary as (
 
         sum(supply_cost) as order_cost,
         sum(is_food_item) as count_food_items,
-        sum(is_drink_item) as count_drink_items,
-        sum(3) as demo_count
+        sum(is_drink_item) as count_drink_items
 
 
     from order_items_table as order_items
@@ -37,7 +36,8 @@ compute_booleans as (
         orders.*,
         count_food_items > 0 as is_food_order,
         count_drink_items > 0 as is_drink_order,
-        order_cost
+        order_cost,
+        sum(3) as demo_count
 
     from orders
     
