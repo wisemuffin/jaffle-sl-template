@@ -40,3 +40,17 @@ dbt build --exclude path:jaffle-data
 mf validate-configs
 mf query --metrics large_orders
 ```
+
+# CICD
+
+## linting
+[sqlfluff](https://sqlfluff.com/)
+```bash
+sqlfluff lint models
+sqlfluff fix models
+```
+
+## refression
+[datafold](https://www.datafold.com/)
+
+Review your impact of code changes on the data.
