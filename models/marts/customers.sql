@@ -62,4 +62,3 @@ joined as (
 )
 
 select * from joined
-
