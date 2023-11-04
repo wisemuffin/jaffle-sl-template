@@ -6,6 +6,14 @@ on:
   push:
     branches:
       - '!main'
+
+env:
+  BUCKET_NAME : "jaffle-sl-template"
+  AWS_REGION : "ap-southeast-2"
+# permission can be added at job level or workflow level    
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
       
 jobs:
   dbt-build-pull-request-cli-datafold:
@@ -48,25 +56,15 @@ jobs:
       #     diff-quality --violations sqlfluff --compare-branch origin/main
       
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-southeast-2
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          # role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
-          role-duration-seconds: 1200
-          role-session-name: MySessionName
-
-      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::123456789100:role/my-github-actions-role
-          aws-region: ap-southeast-2
+          role-to-assume: arn:aws:iam::643260079476:role/github-idp-role
+          aws-region: ${{ env.AWS_REGION }}
+          
   
       - name: Get the last manifest.json from s3
         run: |
-          aws s3 cp s3://jaffle-sl-template/prod/manifest/manifest.json ./target/last_manifest/manifest.json 
+          aws s3 cp s3://${{ env.BUCKET_NAME }}/prod/manifest/manifest.json ./target/last_manifest/manifest.json 
   
       - name: Check if manifest exists
         run : |
