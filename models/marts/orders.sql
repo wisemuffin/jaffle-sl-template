@@ -16,7 +16,7 @@ order_items_summary as (
 
     select
 
-        order_items.order_id,
+        1 as order_id, -- order_items.order_id, -- what a rookie error
 
         sum(order_items.supply_cost) as order_cost,
         sum(order_items.is_food_item) as count_food_items,
@@ -45,4 +45,4 @@ compute_booleans as (
         on orders.order_id = order_items_summary.order_id
 )
 
-select * from compute_booleans
+select * from order_items_summary
