@@ -5,5 +5,7 @@
   "[jinja-sql]": {
     "editor.defaultFormatter": "dorzey.vscode-sqlfluff",
     "editor.formatOnSave": false
-  }
+  },
+  "datafold-vscode.dbtProjectDir": "/home/dave/data-engineering/jaffle-sl-template",
+  "datafold-vscode.dbtProfilesDir": "~/.dbt"
 }
