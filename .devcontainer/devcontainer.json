@@ -21,10 +21,11 @@
         "terminal.integrated.defaultProfile.linux": "zsh"
       },
       "extensions": [
-        "dorzey.vscode-sqlfluff",
-        "esbenp.prettier-vscode",
-        "GitHub.codespaces"
-      ]
+		"dorzey.vscode-sqlfluff",
+		"esbenp.prettier-vscode",
+		"GitHub.codespaces",
+		"Datafold.datafold-vscode"
+	]
     }
   }
 }
