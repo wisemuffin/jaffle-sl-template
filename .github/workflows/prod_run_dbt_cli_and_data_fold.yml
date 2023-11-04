@@ -1,0 +1,84 @@
+name: Production Job DBT via CLI and Datafold (dbt cli runs actual prod job and pull requests)
+
+on:
+  push: # Run the job on push to the main branch
+    branches:
+      - main
+
+env:
+  BUCKET_NAME : "jaffle-sl-template"
+  AWS_REGION : "ap-southeast-2"
+# permission can be added at job level or workflow level    
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+  
+jobs:
+  dbt-build-prod-cli-datafold:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+      - name: Set up Snowflake profile
+        env:
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+        run: |
+          mkdir -p ~/.dbt/
+          echo "snowflake:" >> ~/.dbt/profiles.yml
+          echo " target: prod" >> ~/.dbt/profiles.yml
+          echo " outputs:" >> ~/.dbt/profiles.yml
+          echo "   prod:" >> ~/.dbt/profiles.yml
+          echo "     type: snowflake" >> ~/.dbt/profiles.yml
+          echo "     account: $SNOWFLAKE_ACCOUNT" >> ~/.dbt/profiles.yml
+          echo "     user: $SNOWFLAKE_USER" >> ~/.dbt/profiles.yml
+          echo "     password: $SNOWFLAKE_PASSWORD" >> ~/.dbt/profiles.yml
+          echo "     role: $SNOWFLAKE_ROLE" >> ~/.dbt/profiles.yml
+          echo "     database: $SNOWFLAKE_DATABASE" >> ~/.dbt/profiles.yml
+          echo "     warehouse: $SNOWFLAKE_WAREHOUSE" >> ~/.dbt/profiles.yml
+          echo "     schema: prod" >> ~/.dbt/profiles.yml
+      - name: Install dbt Dependencies
+        run: dbt deps
+      - name: Generate dbt manifest.json
+        run: dbt ls # or dbt compile
+      # - name: Instantiate Jaffle Shop data
+      #   run: dbt seed
+      # - name: dbt Build
+      #   run: dbt build
+      - name: Install Datafold SDK
+        run: pip install -q datafold-sdk
+      - name: Upload dbt artifacts to Datafold
+        run: datafold dbt upload --ci-config-id 305 --run-type production --commit-sha ${GIT_SHA}
+        env:
+          DATAFOLD_API_KEY: ${{ secrets.DATAFOLD_API_KEY }}
+          GIT_SHA: "${{ github.sha }}"
+
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::643260079476:role/github-idp-role
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Upload manifest.json from s3 for cli based slim ci
+        run: |
+          aws s3 cp ./target/manifest.json s3://${{ env.BUCKET_NAME }}/prod/manifest/manifest.json
+  
+      # - name: Generate Docs
+      #   run: dbt docs generate --no-version-check --profiles-dir ./ci_profiles
+      
+      # - name: Publish Docs
+      #   run: |
+      #     aws s3 cp ./target/index.html s3://${{ env.BUCKET_NAME }}/
+      #     aws s3 cp ./target/catalog.json s3://${{ env.BUCKET_NAME }}/
+      #     aws s3 cp ./target/manifest.json s3://${{ env.BUCKET_NAME }}/
