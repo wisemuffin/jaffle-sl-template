@@ -4,7 +4,15 @@ on:
   push: # Run the job on push to the main branch
     branches:
       - main
-      
+
+env:
+  BUCKET_NAME : "jaffle-sl-template"
+  AWS_REGION : "ap-southeast-2"
+# permission can be added at job level or workflow level    
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+  
 jobs:
   dbt-build-prod-cli-datafold:
     runs-on: ubuntu-22.04
@@ -59,18 +67,18 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::123456789100:role/my-github-actions-role
-          aws-region: ap-southeast-2
+          role-to-assume: arn:aws:iam::123456789100:role/github-idp-role
+          aws-region: ${{ env.AWS_REGION }}
           
       - name: Upload manifest.json from s3 for cli based slim ci
         run: |
-          aws s3 cp ./target/manifest.json s3://jaffle-sl-template/prod/manifest/manifest.json
+          aws s3 cp ./target/manifest.json s3://${{ env.BUCKET_NAME }}/prod/manifest/manifest.json
   
       # - name: Generate Docs
       #   run: dbt docs generate --no-version-check --profiles-dir ./ci_profiles
       
       # - name: Publish Docs
       #   run: |
-      #     aws s3 cp ./target/index.html s3://jaffle-sl-template/
-      #     aws s3 cp ./target/catalog.json s3://jaffle-sl-template/
-      #     aws s3 cp ./target/manifest.json s3://jaffle-sl-template/
+      #     aws s3 cp ./target/index.html s3://${{ env.BUCKET_NAME }}/
+      #     aws s3 cp ./target/catalog.json s3://${{ env.BUCKET_NAME }}/
+      #     aws s3 cp ./target/manifest.json s3://${{ env.BUCKET_NAME }}/
