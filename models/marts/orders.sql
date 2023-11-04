@@ -36,7 +36,11 @@ compute_booleans as (
         orders.*,
         order_cost,
         count_food_items > 0 as is_food_order,
+<<<<<<< HEAD
         count_drink_items > 0.6 as is_drink_order
+=======
+        count_drink_items > 0 as is_drink_order
+>>>>>>> a8e148caff71ef6aeff1602eeab8a991cbcd858f
 
     from orders
 
