@@ -77,7 +77,7 @@ jobs:
         run: dbt deps
       - name: Deploy
         run: |
-          export DBT_PROFILE_SCHEMA=pr_$(date +%s)
+          export DBT_PROFILE_SCHEMA=github_cicd_pr_$(date +%s)
           dbt seed --select state:modified --state ./target/last_manifest --full-refresh
           dbt run --models state:modified+ --defer --state ./target/last_manifest
           dbt test --models state:modified+ --defer --state ./target/last_manifest
