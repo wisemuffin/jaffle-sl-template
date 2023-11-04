@@ -34,15 +34,9 @@ compute_booleans as (
     select
 
         orders.*,
-<<<<<<< HEAD
-        order_cost,
-        count_food_items > 0 as is_food_order,
-        count_drink_items > 0.6 as is_drink_order
-=======
         order_items_summary.order_cost,
         order_items_summary.count_food_items > 0 as is_food_order,
-        order_items_summary.count_drink_items > 0 as is_drink_order
->>>>>>> 46b4193df2f19d5245894eb271cadc68c2b09c63
+        order_items_summary.count_drink_items > 0.5 as is_drink_order
 
     from orders
 
