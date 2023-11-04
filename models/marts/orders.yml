@@ -7,6 +7,8 @@ models:
         tests:
           - not_null
           - unique
+        meta:
+          primary-key: true
       - name: customer_id
         description: The foreign key relating to the customer who placed the order.
         tests:
