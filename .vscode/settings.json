@@ -7,5 +7,6 @@
     "editor.formatOnSave": false
   },
   "datafold-vscode.dbtProjectDir": "/home/dave/data-engineering/jaffle-sl-template",
-  "datafold-vscode.dbtProfilesDir": "~/.dbt"
+  "datafold-vscode.dbtProfilesDir": "~/.dbt",
+  "dbt.queryLimit": 500
 }
