@@ -36,12 +36,13 @@ compute_booleans as (
         orders.*,
         count_food_items > 0 as is_food_order,
         count_drink_items > 0 as is_drink_order,
-        order_cost,
-        sum(3) as demo_count
+        order_cost
 
     from orders
     
     left join order_items_summary on orders.order_id = order_items_summary.order_id
 )
 
-select * from compute_booleans
+select * 
+, 1 as demo_column_for_cicd
+from compute_booleans
