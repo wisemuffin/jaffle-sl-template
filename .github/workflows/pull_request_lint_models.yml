@@ -41,6 +41,10 @@ jobs:
           echo "     warehouse: $SNOWFLAKE_WAREHOUSE" >> ~/.dbt/profiles.yml
           echo "     schema: pr_$(date +%s)" >> ~/.dbt/profiles.yml
 
- 
+      - name: Install dbt Dependencies
+        run: dbt deps
+      - name: Generate dbt manifest.json
+        run: dbt ls # or dbt compile
+        
       - name: Lint models
         run: "sqlfluff lint models"
