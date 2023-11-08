@@ -35,8 +35,8 @@ compute_booleans as (
 
         orders.*,
         order_items_summary.order_cost,
-        order_items_summary.count_food_items > 0 as is_food_order,
-        count_drink_items as is_drink_order
+        count_drink_items as is_drink_order,
+        order_items_summary.count_food_items > 0 as is_food_order
 
     from orders
 
