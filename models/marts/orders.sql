@@ -16,8 +16,8 @@ order_items_summary as (
 
     select
 
-        1 as order_id, -- order_items.order_id, -- what a rookie error
-
+        -- 1 as order_id, -- order_items.order_id, -- what a rookie error
+        order_items.order_id,
         sum(order_items.supply_cost) as order_cost,
         sum(order_items.is_food_item) as count_food_items,
         sum(order_items.is_drink_item) as count_drink_items
@@ -36,7 +36,7 @@ compute_booleans as (
         orders.*,
         order_items_summary.order_cost,
         order_items_summary.count_food_items > 0 as is_food_order,
-                count_drink_items > 1 as is_drink_order -- making some regression errors and linting issues
+        count_drink_items as is_drink_order
 
     from orders
 
