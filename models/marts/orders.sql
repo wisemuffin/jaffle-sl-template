@@ -45,4 +45,4 @@ compute_booleans as (
         on orders.order_id = order_items_summary.order_id
 )
 
-select * from order_items_summary
+select * from compute_booleans
