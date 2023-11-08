@@ -16,8 +16,7 @@ order_items_summary as (
 
     select
 
-        -- 1 as order_id, -- order_items.order_id, -- what a rookie error
-        order_items.order_id,
+            1 as order_id, -- order_items.order_id, -- what a rookie error
         sum(order_items.supply_cost) as order_cost,
         sum(order_items.is_food_item) as count_food_items,
         sum(order_items.is_drink_item) as count_drink_items
