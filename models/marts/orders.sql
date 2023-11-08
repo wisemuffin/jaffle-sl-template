@@ -44,4 +44,4 @@ compute_booleans as (
         on orders.order_id = order_items_summary.order_id
 )
 
-select * from compute_booleans
+select * from compute_booleans limit 100
